@@ -6,23 +6,21 @@ import Html exposing (..)
 import Json.Decode as Decode exposing (Value)
 import Page exposing (Page)
 import Page.Quiz as Quiz
-import Page.Blank as Blank
-import Page.IntroductionIntoIEEEFloatingPointNumbers as IntroductionIntoIEEEFloatingPointNumbers
-import Page.CalculateIEEEFloatingPointToDecimal as CalculateIEEEFloatingPointToDecimal
-import Page.NotFound as NotFound
+import Page.NotFound.Blank as Blank
+import Page.Introduction as Introduction
+import Page.Calculating as Calculating
+import Page.NotFound.NotFound as NotFound
 import Route exposing (Route)
 import Session exposing (Session)
 import Task
 import Url exposing (Url)
 
-
-
 type Model
     = Redirect Session
     | NotFound Session
-    | IntroductionIntoIEEEFloatingPointNumbers IntroductionIntoIEEEFloatingPointNumbers.Model
+    | Introduction Introduction.Model
     | Quiz Quiz.Model
-    | CalculateIEEEFloatingPointToDecimal CalculateIEEEFloatingPointToDecimal.Model
+    | Calculating Calculating.Model
 
 
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -54,14 +52,14 @@ view model =
         NotFound _ ->
             viewPage Page.Other (\_ -> Ignored) NotFound.view
 
-        IntroductionIntoIEEEFloatingPointNumbers introductionIntoIEEEFloatingPointNumbers ->
-            viewPage Page.IntroductionIntoIEEEFloatingPointNumbers GotIntroductionIntoIEEEFloatingPointNumbersMsg (IntroductionIntoIEEEFloatingPointNumbers.view introductionIntoIEEEFloatingPointNumbers)
+        Introduction introduction ->
+            viewPage Page.Introduction GotIntroductionIntoIEEEFloatingPointNumbersMsg (Introduction.view introduction)
 
         Quiz quiz ->
             viewPage Page.Quiz GotQuizMsg (Quiz.view quiz)
 
-        CalculateIEEEFloatingPointToDecimal calculateIEEEFloatingPointToDecimal ->
-            viewPage Page.CalculateIEEEFloatingPointToDecimal GotCalculateIEEEFloatingPointToDecimalMsg (CalculateIEEEFloatingPointToDecimal.view calculateIEEEFloatingPointToDecimal)
+        Calculating calculating ->
+            viewPage Page.Calculating GotCalculateIEEEFloatingPointToDecimalMsg (Calculating.view calculating)
 
 
 
@@ -76,9 +74,9 @@ type Msg
     | ChangedRoute (Maybe Route)
     | ChangedUrl Url
     | ClickedLink Browser.UrlRequest
-    | GotIntroductionIntoIEEEFloatingPointNumbersMsg IntroductionIntoIEEEFloatingPointNumbers.Msg
+    | GotIntroductionIntoIEEEFloatingPointNumbersMsg Introduction.Msg
     | GotQuizMsg Quiz.Msg
-    | GotCalculateIEEEFloatingPointToDecimalMsg CalculateIEEEFloatingPointToDecimal.Msg
+    | GotCalculateIEEEFloatingPointToDecimalMsg Calculating.Msg
 
 
 
@@ -91,14 +89,14 @@ toSession page =
         NotFound session ->
             session
 
-        IntroductionIntoIEEEFloatingPointNumbers introductionIntoIEEEFloatingPointNumbers ->
-            IntroductionIntoIEEEFloatingPointNumbers.toSession introductionIntoIEEEFloatingPointNumbers
+        Introduction introduction ->
+            Introduction.toSession introduction
 
         Quiz quiz ->
             Quiz.toSession quiz
 
-        CalculateIEEEFloatingPointToDecimal calculateIEEEFloatingPointToDecimal ->
-            CalculateIEEEFloatingPointToDecimal.toSession calculateIEEEFloatingPointToDecimal
+        Calculating calculating ->
+            Calculating.toSession calculating
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -112,19 +110,19 @@ changeRouteTo maybeRoute model =
             ( NotFound session, Cmd.none )
 
         Just Route.Root ->
-            ( model, Route.replaceUrl (Session.navKey session) Route.IntroductionIntoIEEEFloatingPointNumbers )
+            ( model, Route.replaceUrl (Session.navKey session) Route.Introduction )
 
-        Just Route.IntroductionIntoIEEEFloatingPointNumbers ->
-            IntroductionIntoIEEEFloatingPointNumbers.init session
-                |> updateWith IntroductionIntoIEEEFloatingPointNumbers GotIntroductionIntoIEEEFloatingPointNumbersMsg model
+        Just Route.Introduction ->
+            Introduction.init session
+                |> updateWith Introduction GotIntroductionIntoIEEEFloatingPointNumbersMsg model
 
         Just Route.Quiz ->
             Quiz.init session
                 |> updateWith Quiz GotQuizMsg model
 
-        Just Route.CalculateIEEEFloatingPointToDecimal ->
-            CalculateIEEEFloatingPointToDecimal.init session
-                |> updateWith CalculateIEEEFloatingPointToDecimal GotCalculateIEEEFloatingPointToDecimalMsg model
+        Just Route.Calculating ->
+            Calculating.init session
+                |> updateWith Calculating GotCalculateIEEEFloatingPointToDecimalMsg model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -164,17 +162,17 @@ update msg model =
         ( ChangedRoute route, _ ) ->
             changeRouteTo route model
 
-        ( GotIntroductionIntoIEEEFloatingPointNumbersMsg subMsg, IntroductionIntoIEEEFloatingPointNumbers introductionIntoIEEEFloatingPointNumbers ) ->
-            IntroductionIntoIEEEFloatingPointNumbers.update subMsg introductionIntoIEEEFloatingPointNumbers
-                |> updateWith IntroductionIntoIEEEFloatingPointNumbers GotIntroductionIntoIEEEFloatingPointNumbersMsg model
+        ( GotIntroductionIntoIEEEFloatingPointNumbersMsg subMsg, Introduction introduction ) ->
+            Introduction.update subMsg introduction
+                |> updateWith Introduction GotIntroductionIntoIEEEFloatingPointNumbersMsg model
 
         ( GotQuizMsg subMsg, Quiz quiz ) ->
             Quiz.update subMsg quiz
                 |> updateWith Quiz GotQuizMsg model
 
-        ( GotCalculateIEEEFloatingPointToDecimalMsg subMsg, CalculateIEEEFloatingPointToDecimal calculateIEEEFloatingPointToDecimal ) ->
-            CalculateIEEEFloatingPointToDecimal.update subMsg calculateIEEEFloatingPointToDecimal
-                |> updateWith CalculateIEEEFloatingPointToDecimal GotCalculateIEEEFloatingPointToDecimalMsg model
+        ( GotCalculateIEEEFloatingPointToDecimalMsg subMsg, Calculating calculating ) ->
+            Calculating.update subMsg calculating
+                |> updateWith Calculating GotCalculateIEEEFloatingPointToDecimalMsg model
 
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
@@ -201,14 +199,14 @@ subscriptions model =
         Redirect _ ->
             Sub.none
 
-        IntroductionIntoIEEEFloatingPointNumbers introductionIntoIEEEFloatingPointNumbers ->
-            Sub.map GotIntroductionIntoIEEEFloatingPointNumbersMsg (IntroductionIntoIEEEFloatingPointNumbers.subscriptions introductionIntoIEEEFloatingPointNumbers)
+        Introduction introduction ->
+            Sub.map GotIntroductionIntoIEEEFloatingPointNumbersMsg (Introduction.subscriptions introduction)
 
         Quiz quiz ->
             Sub.map GotQuizMsg (Quiz.subscriptions quiz)
 
-        CalculateIEEEFloatingPointToDecimal calculateIEEEFloatingPointToDecimal ->
-            Sub.map GotCalculateIEEEFloatingPointToDecimalMsg (CalculateIEEEFloatingPointToDecimal.subscriptions calculateIEEEFloatingPointToDecimal)
+        Calculating calculating ->
+            Sub.map GotCalculateIEEEFloatingPointToDecimalMsg (Calculating.subscriptions calculating)
 
 
 
