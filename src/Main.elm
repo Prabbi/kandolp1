@@ -1,5 +1,5 @@
 module Main exposing (main)
-
+import Session exposing (Session)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html exposing (..)
@@ -61,13 +61,7 @@ view model =
         Calculating calculating ->
             viewPage Page.Calculating GotCalculateIEEEFloatingPointToDecimalMsg (Calculating.view calculating)
 
-
-
-
-
-
 -- UPDATE
-
 
 type Msg
     = Ignored
@@ -188,8 +182,6 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
 
 
 -- SUBSCRIPTIONS
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
@@ -211,13 +203,11 @@ subscriptions model =
 
 
 -- MAIN
-
-
 main : Program Value Model Msg
 main =
     Browser.application
-        { init = init
-        , onUrlChange = ChangedUrl
+        { init = init -- init gets the current Url from the browsers navigation bar. This allows you to show different things depending on the Url.
+        , onUrlChange = ChangedUrl --When someone clicks a link, like <a href="/home">Home</a>, it is intercepted as a UrlRequest. So instead of loading new HTML with all the downsides, onUrlRequest creates a message for your update where you can decide exactly what to do next. You can save scroll position, persist data, change the URL yourself, etc.
         , onUrlRequest = ClickedLink
         , subscriptions = subscriptions
         , update = update

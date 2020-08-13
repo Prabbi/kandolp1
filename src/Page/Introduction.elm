@@ -16,9 +16,11 @@ import Page.Introduction.Introductionview as Introview exposing(..)
 import Page.Introduction.Introductionupdate as Introupdate exposing(..)
 import Page.Introduction.Introductionmessage as Intromessage exposing(..)
 import Tuple exposing (..)
+import Styles.Styles exposing (..)
 
 
-hi model = Html.map IntroMsg (Introview.viewinghello model.introduction)
+introduction model = Html.map IntroMsg (Introview.viewingintroexplanation model.introduction)
+
 
 
 --This converts to type QuizMsg
@@ -32,10 +34,12 @@ view : Model -> { title : String, content : Html Msg }
 view model =
     { title = Intromodel.pageTitle
     , content =
-        div [ class "container" ]
-            [ h2 Introview.pagestyle [ text Intromodel.pageTitle ]
-            , div [] [text Intromodel.pageBody], hi model]
+        div fixposition
+            [ Styles.Styles.hi
+            , h2 (Styles.Styles.pagestyle "180px")[ text Intromodel.pageTitle ]
+            , div [] [text Intromodel.pageBody], introduction model]
     }
+
 
 --This holds the attributes from the quizmodel
 type alias Model =

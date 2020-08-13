@@ -9,41 +9,41 @@ update msg model =
     case msg of
         Show1 ->
             ( { model
-                | style1 = True
+                | stylesign = True
               }
             , Cmd.none
             )
 
         Hide1 ->
             ( { model
-                | style1 = False
+                | stylesign = False
               }
             , Cmd.none
             )
         Show2 ->
             ( { model
-                | style2 = True
+                | stylemantissa = True
               }
             , Cmd.none
             )
 
         Hide2 ->
             ( { model
-                | style2 = False
+                | stylemantissa = False
               }
             , Cmd.none
             )
 
         Show3 ->
             ( { model
-                | style3 = True
+                | styleexponent = True
               }
             , Cmd.none
             )
 
         Hide3 ->
             ( { model
-                | style3 = False
+                | styleexponent = False
               }
             , Cmd.none
             )

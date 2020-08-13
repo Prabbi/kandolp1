@@ -10,8 +10,10 @@ import Tuple exposing (..)
 type alias Model =
     { session : Session
     , calculator : Calculator.Model
-    , questioninputs : Dict Int String
+    , anwsersinputs : Dict Int String
     , next : Int
+    , questions : Dict Int String
+    , anwsers : Dict Int String
     }
 
 
@@ -19,39 +21,34 @@ init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
       , calculator = first (Calculator.init session)
-      , questioninputs = Dict.fromList [ ( 1, "" ), ( 2, "" ), ( 3, "" ), ( 4, "" ), ( 5, "" ), ( 6, "" ) ]
+      , anwsersinputs = Dict.fromList <| List.map (\i -> (i, ("") )) (List.range 1 5)
       , next = 1
+      , questions = Dict.fromList
+          [ ( 1, "Convert the following 11 IEEE floating bit '11010010000' into its decimal equivalent" ) --212
+          , ( 2, "Convert -5.75 to binary" ) -- -101.11
+          , ( 3, "Convert 16.75 to binary" ) -- 10000.11
+          , ( 4, "Convert the following 11 IEEE floating bit '01010001100' into its decimal equivalent" )
+          , ( 5, "Convert the following 11 IEEE floating bit '11110000110' into its decimal equivalent" )
+          ]
+      , anwsers =
+          Dict.fromList
+              [ ( 1, "-10" )
+              , ( 2, "-101.11" )
+              , ( 3, "10000.11" )
+              , ( 4, "9.5" )
+              , ( 5, "-140" )
+              ]
       }
     , Cmd.none
     )
 
 
-pageTitle =
+quizTitle =
     "Quiz"
 
 
 pageBody =
     ""
-
-
-anwsers =
-    Dict.fromList
-        [ ( 1, "1" )
-        , ( 2, "2" )
-        , ( 3, "3" )
-        , ( 4, "4" )
-        , ( 5, "5" )
-        ]
-
-
-questions =
-    Dict.fromList
-        [ ( 1, "Convert 0 1000 001 to decimal number" )
-        , ( 2, "Convert 1 1101 010 to decimal number" )
-        , ( 3, "Is the floating point number positive / negative when the sign bit is 1?" )
-        , ( 4, "Convert -4.9 into a binary number" )
-        , ( 5, "Convert 0 1000 001 to a decimal number" )
-        ]
 
 
 toSession : Model -> Session

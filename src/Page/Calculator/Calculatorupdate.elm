@@ -1,6 +1,7 @@
 module Page.Calculator.Calculatorupdate exposing (..)
 import Page.Calculator.Calculatormessage exposing (..)
 import Page.Calculator.Calculatormodel exposing (..)
+import Random exposing (..)
 
 import Dict exposing (..)
 
@@ -28,12 +29,7 @@ update msg model =
         --9
         IncrementSign ->
             ( { model
-                | sign =
-                    if model.sign == 1 then
-                        0
-
-                    else
-                        1
+                | sign = flip model.sign
               }
             , Cmd.none
             )

@@ -17,12 +17,7 @@ import Styles.Styles exposing (..)
 import Page.Quiz.Quizmodel exposing (..)
 import Page.Quiz.Quizupdate exposing (update)
 
-
-calculator model = Html.map CalculatorMsg (Calculatorview.signexponentmantissaview model.calcualtor)
-calculator3 model = Html.map CalculatorMsg (Calculatorview.explanationoffloatingpoint model.calcualtor)
-calculator1 model = Html.map CalculatorMsg (Calculatorview.viewMantissaIncrement model.calcualtor)
-calculator2 model = Html.map CalculatorMsg (Calculatorview.viewExponentIncrement model.calcualtor)
-calculator5 model = Html.map CalculatorMsg (Calculatorview.viewSignIncrement model.calcualtor)
+calculator6 model = Html.map CalculatorMsg (Calculatorview.finalcalculatormodel model.calcualtor)
 
 --This converts to type QuizMsg
 type Msg = CalculatorMsg Calculatormessage.Msg
@@ -34,11 +29,13 @@ update msg model = case msg of CalculatorMsg calculatormsg -> ({ model | calcual
 -- This shows the of the quiz and the calculator which is a helper
 view : Model -> { title : String, content : Html Msg }
 view model =
-    { title = pageTitle
+    { title = pageTitle1
+
     , content =
-        div []
-            [ h2 pagestyle1 [ text model.calcualtor.pageTitle ]
-            , div [] [text pageBody], calculator model, calculator1 model, calculator2 model, calculator3 model, calculator5 model]
+        div fixposition4
+            [ Styles.Styles.hi
+            , h2 (pagestyle "235px" )[ text model.calcualtor.calculatorTitle ]
+            , div [] [text pageBody], calculator6 model]
     }
 
 --This holds the attributes from the quizmodel

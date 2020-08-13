@@ -7,229 +7,221 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Styles.Styles exposing (..)
 import Page.Calculator.Calculatormessage as Calculator exposing (..)
-
---This displays error depending on whether the user has put nan
-viewexplanation model =
-    if checkifpositiveinfinity model == True then
-        div (whaterror) [ text "This is an error - What error is this?" ]
-    else if checkifnan model == True then
-        div (whaterror) [ text "This is an error - What error is this?" ]
-    else if checkifnegativeinfinity model == True then
-        div (whaterror) [ text "This is an error - What error is this?" ]
-    else  fpexplanation model
-
---This provides a partial explanation of how to convert IEEE Floating points to a decimal - This is for the quizview
-clueexplanation model =
-    div (textstyle1 ("250px") ("750px" )) [
-    fl [text "1. Floating point bits : "] , floatingpointstring model, sp, sp
-    ,div [] [text ("2. The sign ' " ++ String.fromInt(model.sign) ++ " ' determines whether the decimal is going to be positive / negative")]
-    ,sp
-    ,div [] [text ("3. Convert the exponent into a decimal and then work out the exbias i.e. eB number")]
-    ,sp
-    ,div [] [text ("For example " ++ "eB =  ( ' "++ (String.fromInt(sumexponent model)) ++  " ' is the Exponent Decimal )  - 7 = ?")], sp
-    ,div [] [text " What is the exbias?" ]
-    ,sp
-    ,div [] [text ("4. Continue the same method with the mantissa (obviously there is no exbias for this)")]
-    ,sp
-    ,div [] [text ("5. The formular for working out the final IEEE Floating Point decimal is as follows : " )] , sp, div [] [text "(-1 ^ s) * (m) * (2^e) = "]]
-
---This is a image for home page
-image = imageStyle "homecalculating.jpg" "310px" "#3399ff" "20px" "200px" "200px"
-
---This provides an outlined box of what is the sign, exponent and mantissa
-signview model = div (viewstyle ("532px") ("50px"))  [text "Sign"]
-exponentview model = div (viewstyle ("310px") ("155px"))  [text "Exponent"]
-mantissaview model = div (viewstyle ("15px") ("241px")) [text "Mantissasa"]
-signexponentmantissaview model = div [] [signview model, exponentview model, mantissaview model]
+import String exposing (..)
 
 
 
---This is a function which allows you to get the power of 2 for a number
--- Mantissa takes two parameters, 1 for the position and one to specify what to multiply the mantissa bit by for example this may 2 ^ -1
-checkexponent model x y = if Maybe.withDefault x (Dict.get x model.exponent) > 0 then 2 ^ y else 0
-checkmantissa model x y = if Maybe.withDefault x (Dict.get x model.mantissa) > 0 then 2 ^ y else 0
---This is applying checkexponent to add all the exponent bits to get the final exponent number
-sumexponent model = (checkexponent model 1 3) + (checkexponent model 2 2) + (checkexponent model 3 1) + (checkexponent model 4 0)
---This is applying checkmantissa to add all the mantissa bits to get the final exponent number
-summantissa model = (checkmantissa model 1 -1) + (checkmantissa model  2 -2) + (checkmantissa model  3 -3) + (checkmantissa model  4 -4) + (checkmantissa model  5 -5) + (checkmantissa model  6 -6)
---This enables the viewer to see what mathematical caluclations are being applied to the exponent number and mantissa number to work it out
-stringsumexponent model = div [style "font-weight" "bold" ] [text (s(checkexponent model 1 3) ++ " + " ++ s(checkexponent model 2 2) ++ " + " ++ s(checkexponent model 3 1) ++ " + " ++ s(checkexponent model 4 0) ++ " = ")]
-stringsummantissa model =  div [style "font-weight" "bold"] [text (s(checkmantissa model 1 -1)  ++ " + " ++  s(checkmantissa model  2 -2)  ++ " + " ++  s(checkmantissa model  3 -3)  ++ " + " ++  s(checkmantissa model  4 -4)  ++ " + " ++  s(checkmantissa model  5 -5)  ++ " + " ++  s(checkmantissa model  6 -6) ++ " = ")]
---This makes the dictionary of exponents and mantissa's into a list - allowing the sum to be retrieved
+
+
+--This makes a new list of the keys in the dictinoaries of the exponent and mantisssa
+--This is needed in order to work out the exponent and mantissa numbers
+exponentlistrange model = List.reverse(Dict.keys model.exponent) -- This is in the reverese order as that is how the exponent is worked out
+mantissalistrange model =  (Dict.keys model.mantissa)
+
+
+--This is checking whether the values in the dictionary are greater than 0 if so we get their powers otherwise the value will remain as 0 in this model
+ifstatement model l = (if Maybe.withDefault (0) (Dict.get (l) model.exponent) > 0 then 2 ^ (l) else 0)
+ifstatement2 model l = (if Maybe.withDefault (0) (Dict.get (l) model.mantissa) > 0 then 2 ^ (-l) else 0) --l (-l) since the mantissa multiples negative
+
+--The ifstatement models gets the powers of the exponents/mantissa bits , and this is then mapped against the keys in the exponent/mantissa range
+powersexponent1 model = List.map (\l -> (ifstatement model l)) (exponentlistrange model)
+powersofmantissa1 model = List.map (\l -> (ifstatement2 model l)) ((mantissalistrange model))
+
+--This puts a + and then an equal signs at the end to show the adding of numbers
+toJoinPlusEqual lst = div [] [text (String.join " + " (List.map String.fromInt(lst)) ++ " = ")]
+
+--This gets the powers of the exponents
+sumexponent model = List.sum((powersexponent1 model))
+--This shows the powers of the exponents added for the view
+stringsumexponent model = toJoinPlusEqual ((powersexponent1 model))
+
+--This gets the powers of the mantissa
+summantissa model = List.sum((powersofmantissa1 model))
+--This shows the powers of the mantissa added for the view
+stringsummantissa  model = toJoinPlusEqual (powersofmantissa1 model)
+
+--This then provides the view showing how the calculation is carried out for the exponent
+viewingexponentp model = List.map (\l -> (  " ( " ++ String.fromInt(Maybe.withDefault (0) (Dict.get (l) model.exponent)) ++ " * 2 ^ " ++ String.fromInt(l) ++ ")" )) (exponentlistrange model)
+
+--This then provides the view showing how the calculation is carried out for the mantissa
+viewingmantissap model = List.map (\l -> (" ( " ++ String.fromInt(Maybe.withDefault (0) (Dict.get (l) model.mantissa)) ++ " * 2 ^ -" ++ String.fromInt(l) ++ ")")) (mantissalistrange model)
+
+toJoin model x = div [] [text (String.join " + " (x) ++ " = ")]
+--This puts the list string from the viewingexponentp and viewingmantissap into a div[] element for the view
+powersofexponent model = toJoin model ((viewingexponentp model))
+powersofmantissa model = toJoin model (viewingmantissap model)
+
+-- This displays the bits on the calculator i.e. whether the bit is 1 / 0 when the user clicks on the mantissa bits
+onlicksign model = div floatingPointIncrementStyle
+                    [ button (buttonstyle1 IncrementSign "40px" "40px" "#3399ff")  [ text (String.fromInt (model.sign)) ]
+                    , div [style "font-weight" "bold"] [ text (String.fromInt (model.sign)) ]
+                    , div [] [ text " " ]
+                    ]
+-- This increments the corresponding bit number in the sign
+viewSignIncrement model = div (textstyle1 ("145px") ("520px" )) [onlicksign model]
+
+--This is going to increment the vales of the bits in the exponent through a mapping the list exponentlistrange so this will show each button in the view
+viewExponentIncrement  model = div (textstyle1 ("145px") ("620px" )) (List.map (\l ->  div floatingPointIncrementStyle [
+                        button (buttonstyle1 (IncrementExponent l) "40px" "40px" "#6600ff") [ text (String.fromInt(l+1)) ]
+                        , div [style "font-weight" "bold"] [ text (String.fromInt (Maybe.withDefault 0 (Dict.get l model.exponent))) ]
+                        , div [] [ text " " ]
+                        ]) ((exponentlistrange model)))
+--This is going to increment the vales of the bits in the mantissa through a mapping the list mantissalistrange so this will show each button in the view
+viewMantissaIncrement model = div (textstyle1 ("145px") ("830px" )) (List.map (\l ->  div floatingPointIncrementStyle [
+                        button (buttonstyle1 (IncrementMantissa l) "40px" "40px" "#ff66cc") [ text (String.fromInt(l)) ]
+                        , div [style "font-weight" "bold"] [ text (String.fromInt (Maybe.withDefault 0 (Dict.get l model.mantissa))) ]
+                        , div [] [ text " " ]
+                        ]) (mantissalistrange model))
+
+--This makes values the dictionary of exponents and mantissa's into a list - allowing the sum to be retrieved
 exponentlist model = Dict.values model.exponent
 mantissalist model = Dict.values model.mantissa
+
 --String.fromInt
 s x = String.fromInt(x)
+
 --This gets the length of the exponent list
-explist1 model = (List.length(exponentlist model)) - 1
---This allows the sum of a list to be retrived
-sum list = list.sum()
---Through getting the sum we are able to determine whether the IEEE Floating point number is Nan, Positive Infinity, Negative Infinity
+explist1 model = (List.length(exponentlist model))
+mantissalist1 model = (List.length(mantissalist model))
+
+--This is getting the value needed to work out the exponent , this number is taken away from the exbias
+eB model = (2 ^ (explist1 model - 1)) - 1
+
+--Through getting the sum we are able to determine whether the IEEE Floating point number is Nan, Positive Infinity, Negative Infinity.....
 checkifnan model = if (List.sum (exponentlist model) == (explist1 model)) && (List.sum (mantissalist model) > 0) then True else False
 checkifpositiveinfinity model =  if (model.sign == 0) && (List.sum (exponentlist model) == (explist1 model)) && (checkifnan model == False) then True else False
 checkifnegativeinfinity model = if (model.sign == 1) && (List.sum (exponentlist model) == (explist1 model)) then True else False
+checkdenormalised model = if (model.sign == 1 || model.sign == 0) && (List.sum(exponentlist model)) == 0 && (List.sum(mantissalist model)) > 0 then True else False
+checkifzeronegative model = if (model.sign == 0) && (List.sum(exponentlist model)) == 0 && (List.sum(mantissalist model)) == 0 then True else False
+checkifzeropositive model = if (model.sign == 1) && (List.sum(exponentlist model)) == 0 && (List.sum(mantissalist model)) == 0 then True else False
 
+--This is mapping each element into a div [] element
+toDiv lst = div [] (List.map (\l -> div [style "float" "left"] [ text (String.fromInt(l)) ]) lst)
 
+--This is now getting each value from the dictionary and putting it inside of a div [] element
+floatingpointstring model = toDiv (signmantissaexponentlist model)
+exponentstring model = toDiv (List.reverse(exponentlist model))
+mantissastring model = toDiv (mantissalist model)
 
---This allows the 'List String' to be converted into an html msg, so it can be seen in the view
-renderList : List String -> Html msg
-renderList lst = div [] (List.map (\l -> div [style "float" "left"] [ text l ]) lst)
---renderList only takes String as a parameter, therefore this converts each item into a String
-renderingtostringfullfloating model = List.map (\a -> (String.fromInt(a))) (fplistremoval2 model)
-renderingtostringexponent model = List.map (\a -> (String.fromInt(a))) (exponentlistremovl1 model)
-renderingtostringmantissa model = List.map (\a -> (String.fromInt(a))) (mantissalistremovl1 model)
---This is a visualisation of the sign, exponent and mantissa bits
-signmantissaexponentlist model = [model.sign] ++ (exponentlist model) ++ (mantissalist model)
--- This removes at a particular index in the List
-removeAt index l  =
-    if index < 0 then
-        l
-    else
-        let
-            head =
-                List.take index l
-
-            tail =
-                List.drop index l |> List.tail
-        in
-            case tail of
-                Nothing ->
-                    l
-
-                Just t ->
-                    List.append head t
---The problem with when converting it into a list, one number bit is added to the end of the list, this allows the removal of the end bit
-fplistremoval1 model = removeAt 1 (signmantissaexponentlist model)
-fplistremoval2 model = removeAt 5 (fplistremoval1 model)
-exponentlistremovl1 model = removeAt 0 (exponentlist model)
-mantissalistremovl1 model = removeAt 0 (mantissalist model)
--- This is now putting renderingtostringfullfloating into a model, so it can be placed into the view as a html msg
-floatingpointstring model = renderList(renderingtostringfullfloating model)
-exponentstring model = renderList(renderingtostringexponent model)
-mantissastring model =  renderList(renderingtostringmantissa model)
-
-
-
-
--- These takes the bit model function and then puts them into a text, so it can seen in the view function
--- This shows the conversion in the bits model
-powersofmantissa model = div [style "font-weight" "bold"] [bitsm model 1 -6, bitsm model 2 -5, bitsm model 3 -4, bitsm model 4 -3, bitsm model 5 -2, bitsm model 6 -1]
-powersofexponent model = div [style "font-weight" "bold"] [div [style "float" "left"] [bitse model 4 3 ,bitse model 3 2 ,bitse model 2 1 ,bitse model 1 0 ]]
--- This displays the bits on the calculator i.e. whether the bit is 1 / 0 when the user clicks on the mantissa bits
-onlicksign model x = div floatingPointIncrementStyle [
-                    button (buttonstyle1 IncrementSign "40px" "40px" "#3399ff")  [ text (String.fromInt (model.sign)) ]
-                    , div [style "font-weight" "bold" ] [ text (String.fromInt (model.sign)) ]
-                    , div [] [ text " " ]
-                    ]
--- This displays the bits on the calculator i.e. whether the bit is 1 / 0 when the user clicks on the mantissa bits
-onlickmantissa model x a = div floatingPointIncrementStyle [
-                    button (buttonstyle1 (IncrementMantissa x) "40px" "40px" "#ff66cc") [ text (String.fromInt(x)) ]
-                    , div [style "font-weight" "bold"] [ text (String.fromInt (Maybe.withDefault x (Dict.get x model.mantissa))) ]
-                    , div [] [ text " " ]
-                    ]
---onlickmantissa1 model x = div floatingPointIncrementStyle [ button [ onClick IncrementMantissa] [ text ("" ++ (String.fromInt(x))) ], div [] [text ""]]
--- This displays the bits on the calculator i.e. whether the bit is 1 / 0 when the user clicks on the exponent bits
-onlickexponent model x a = div floatingPointIncrementStyle [
-                      button (buttonstyle1 (IncrementExponent x) "40px" "40px" "#6600ff") [ text (String.fromInt(x)) ]
-                    , div [style "font-weight" "bold"] [ text (String.fromInt (Maybe.withDefault x (Dict.get x model.exponent))) ]
-                    , div [] [ text " " ]
-                    ]
--- This function takes two parameters, x (position) y(what we want to multiple the position)
--- When exponent bit > 0, then it will multiply exponent by specific value i.e. for posiiton 1 it will be 2 ^ 1
--- When the exponent bit < 0, then it will multiply 0 with 2 to the power of 1
-bitse model x y = div [style "float" "left"] [text ((if Maybe.withDefault x (Dict.get x model.exponent) > 0
-                          then " ( 1 * 2 ^ " ++ String.fromInt(y) ++ " = " ++ String.fromInt(1 * 2 ^ y) ++ (if x == 1 then " )  = " else "  ) + ")
-                          else " ( 0 * 2 ^ " ++ String.fromInt(y)  ++ (if x == 1 then " )  = " else " = 0 ) + ")))]
---This function takes two parameters, x (position) y(what we want to multiple the position)
--- When mantissa bit > 0, then it will multiple mantissa by specific value i.e. for posiiton 1 it will be 2 ^ -1
--- When the mantissa bit < 0, then it will multiply 0 with 2 to the power of -1
-bitsm model x y = div [style "float" "left"] [text (if Maybe.withDefault x (Dict.get x model.mantissa) > 0
-                          then " ( 1 * 2 ^ " ++ String.fromInt(y) ++ " = " ++ String.fromInt(1 * 2 ^ y) ++ (if y == -1 then ") = " else " ) + " )
-                          else " ( 0 * 2 ^ " ++ String.fromInt(y)  ++ (if y == -1 then " ) = " else " = 0 ) + " ))]
-
-
-
-hello123 model = div [] [signexponentmantissaview model, viewExponentIncrement model, viewSignIncrement model, viewMantissaIncrement model, viewexplanation model]
+--This is a list of the sign, exponent and mantissa bits all concatenated together
+signmantissaexponentlist model = [model.sign] ++ (List.reverse(exponentlist model)) ++ (mantissalist model)
 
 -- This will disply either Nan, Positive Infinity, Negative Infinity - explanation
 -- What it displays depends on the condiitons for example checkifnan - This checks if all bits in the floating point are 0
 -- When they are all equal to 0, then this displays "NAN", else it will display an explanation on how to convert it into an IEEE Floating point number
+errorview x =  div [style "position" "relative",style "height" "100%", style "left" "165px"] [div (abordercolor ("red") ("200px")) [text x]]
 
+nanview = errorview "NAN - Why is that?"
+positiveinfinity = errorview "Positive Infinity - Why is that?"
+negativeinfinity = errorview "Negative Infinity - Why is that?"
+denormlised = errorview "Denormalized - Why is that?"
+zeropositive = errorview "Zero positive- Why is that?"
+zeronegative = errorview "Zero negative - Why is that?"
 
---This makes a space
-sp = br [] [text " "]
---This puts the code on the left
-fl = div [style "float" "left"]
-
+--These provide an explation on how to carry out the conversions on the page
+-- TO CHANGE THE HEIGHT OF THIS AT ANY POINT REFER TO THE 'fixposition' style element in STYLES - This is put into the Calculting page
 fpexplanation model =
    div (textstylebackground ("linear-gradient(to bottom, #33ccff 0%, #000066 150%)") ("white")) [
-   fl [text "1. The bits : "] , floatingpointstring model, sp, sp
-   ,div [] [text "The 1st bit is the sign bit, the next 4 bits give the exponent and the last 6 bits give the mantissa."]]
+   fl [text " The bits : "] , floatingpointstring model, sp, sp
+   ,div [] [text "The 1st bit is the sign bit , the next 4 bits give the exponent and the last 6 bits give the mantissa."]]
 
 explanationoffloatingmodel model =
-     div (textstylebackground ("linear-gradient(to bottom right, #9966ff 0%, #000066 100%)") ("white")) [
+     div (textstylebackground ("linear-gradient(to bottom right, #9966ff 0%, #000066 150%)") ("white")) [
      fl [text "1. Working out Exponent : "], sp, sp
      ,fl [text "Lets first decode the exponent which is :"], exponentstring model, sp, sp
-     , powersofexponent model, sp, sp, stringsumexponent model ,  sp, div [] [text ("Exponent Number = " ++ String.fromInt(sumexponent model))], sp
-     , div [] [text " This is not yet the exponent.  If eB was the exponent, we would not be able to have numbers with a negative exponent.  To allow for negative exponents, the number eB is shifted by subtracting 7:"], sp
-     , div [] [text ("eB = " ++ (String.fromInt(sumexponent model)) ++  " - 7 = " ++ if (sumexponent model) > 0 then (String.fromInt((sumexponent model) - 7)) else "")], sp
-     , div [style "font-style" "italic"] [text "(Note that the extreme values eB = 0 and eB = 255 have a special meaning and would not be translated like this.)"]
+     ,powersofexponent model , sp,  stringsumexponent model , sp,  div [] [text ("exponentBias (eB) = " ++ String.fromInt(sumexponent model))], sp
+     , div [] [text (" This is not yet the exponent.  If eB was the exponent, we would not be able to have numbers with a negative exponent.  To allow for negative exponents, the eB is shifted by subtracting " ++ String.fromInt(eB model))], sp
+     , div [] [text ("' " ++ String.fromInt(eB model) ++ " ' " ++ " was determined with the formular : (2^(number of bits in exponent - 1)) - 1")], sp
+     , div [] [text ("(2 ^ (" ++ String.fromInt(explist1 model) ++ " - 1)) - 1 = " ++ (String.fromInt(eB model)) ) ], sp
+     , div [] [text "Now we can work out the final exponent "], sp
+     -- , div [] [text ("(2 ^ (" ++ String.fromInt(explist1 model) ++ " - 1)) - 1)")]
+     , div [] [text ("Exponent Number (e) = " ++ (String.fromInt(sumexponent model)) ++  " - 7 = " ++ if (sumexponent model) > 0 then (String.fromInt((sumexponent model) - (eB model))) else "")], sp
+     , div [style "font-style" "italic"] [text "(Note that the extreme values e = 0 and e = 15 have a special meaning and would not be translated like this.)"]
      ]
 
 expmantisaafp model =
      div (textstylebackground ("linear-gradient(to bottom, #ff99ff 0%, #000066 150%)") ("white"))[
       fl [text "2. Working out Mantissa: "], sp, sp
     , fl [text " Now let us work out the mantissa :"], mantissastring model, sp, sp
-     ,powersofmantissa model, sp, sp, stringsummantissa model , sp, div [] [text ("Mantissa Number = " ++ (if (summantissa model) > 0 then String.fromInt((summantissa model) + 1) else (String.fromInt(summantissa model))))], sp
-     , div [style "font-style" "italic"] [ text "(Notice that the “1+” in the calculation guarantees that m is always between 1 and 2)"]
+     , powersofmantissa model, sp, stringsummantissa model, sp, div [] [text ("Mantissa Number (m) = " ++ (if (summantissa model) > 0 then String.fromInt((summantissa model)) else (String.fromInt(summantissa model))))], sp
      ]
 
 finalfp model =
      div (textstylebackground ("white") ("black")) [
-      fl [text "3. Working out decimal number : "], sp, sp
+      fl [text "3. Working out number : "], sp, sp
     , div [style "float" "left"] [text "We can now decode the meaning of the whole floating-point number"], sp, sp
-    , div [] [text ("The sign bit is " ++  String.fromInt(model.sign) ++ ( if (model.sign) > 0 then ( " which means the decimal is a negative number" ) else (" which means the decimal is a positive number"))) ], sp
-    , div [] [text ("(-1 ^ s) * (1 + m) * (2^eB) = ")], sp
+    , div [] [text ("The sign bit (s) '" ++  String.fromInt(model.sign) ++ ( if (model.sign) > 0 then ("' gives a negative number" ) else ("' gives a positive number"))) ], sp
+    , div [] [text ("(-1 ^ s) * (1 + m) * (2^e) = ")], sp
+    , div [style "font-style" "italic"] [ text "(Notice that the number '1+m' is always between 1 and 2)"], sp
     , div [] [text (" (-1 ^ " ++ String.fromInt(model.sign) ++ ") * ( 1 + " ++  String.fromInt(summantissa model) ++ ") * (2 ^ " ++   (if (sumexponent model) > 0 then (String.fromInt((sumexponent model) - 7) ++ ")) ="  ) else String.fromInt(sumexponent model) ++ ") = "))], sp
-    , div [] [text (if (summantissa model) == 0 && (sumexponent model) == 0 then "" else (String.fromInt((-1 ^ model.sign) * (1 + (summantissa model)) * (2 ^ (if (sumexponent model) > 0 then ((sumexponent model) - 7) else (sumexponent model))))))]
+    , div [] [text (if (summantissa model) == 0 && (sumexponent model) == 0 then "" else (String.fromInt((-1 ^ model.sign) * (1 + (summantissa model)) * (2 ^ (if (sumexponent model) > 0 then ((sumexponent model) - 7) else (sumexponent model))))))
+
+    ]
   ]
 
+--This is a image for home page
+image = imageStyle "homecalculating.jpg" "330px" "#3399ff" "-120px" "150px" "150px"
+abuttonexplanation = imageStyle "abuttonclickyo.gif" "1080px" "#e6f7ff" "43px" "50px" "50px"
+
+--This provides an outlined box of what is the sign, exponent and mantissa for the calculator buttons view
+signview model = div (textstyle1 "120px" "650px" )  [text "Sign"]
+exponentview model =div (textstyle1 "120px" "790px")    [text "Exponent"]
+mantissaview model = div (textstyle1 "120px" "1030px") [text "Mantissa"]
+signexponentmantissaview model = div [style "position" "absolute" , style "top" "0px", style "left" "-85px"] [signview model, exponentview model, mantissaview model]
+
+-- This stores the explanations as well as the image
+explanationoffloatingpoint1 model = div [style "height" "1350px", style "top" "-50px", style "margin-left" "400px", style "position" "relative"] [fpexplanation model, explanationoffloatingmodel model, expmantisaafp model, finalfp model ]
 
 
-nanview = div [] [div (abordercolor ("red") ("300px")) [text "NAN - Why is that?"], div [] [image]]
-positiveinfinity = div [] [div (abordercolor ("red") ("300px")) [text "Positive Infinity - Why is that?"], div [] [image]]
-negativeinfinity = div [] [div (abordercolor ("red") ("300px")) [text "Negative Infinity - Why is that?"], div [] [image]]
-
-explanationoffloatingpoint model = div [] [if (checkifnan model) == True then (nanview) else if (checkifpositiveinfinity model) == True then (positiveinfinity) else if (checkifnegativeinfinity model) == True then (positiveinfinity) else (explanationoffloatingpoint1 model) ]
-
-explanationoffloatingpoint1 model = div [] [fpexplanation model, explanationoffloatingmodel model, expmantisaafp model, finalfp model, image]
-
-hello12345 model = "hello"
-
--- This increments the corresponding bit number in the sign
-viewSignIncrement model =
-    div (textstyle1 ("145px") ("605px" ))
-        [ onlicksign model "#3399ff"
-        ]
--- This increments the corresponding bit number in the exponent
-viewExponentIncrement model =
-    div (textstyle1 ("145px") ("720px" ))
-        [ onlickexponent model 1 "#6600ff"
-        , onlickexponent model 2 "#6600ff"
-        , onlickexponent model 3 "#6600ff"
-        , onlickexponent model 4 "#6600ff"
-
-        ]
---This increments the corresponding bit number in the mantissa
-viewMantissaIncrement model =
-    div (textstyle1 ("145px") ("930px" ))
-        [ onlickmantissa model 1 "#ff66cc"
-        , onlickmantissa model 2 "#ff66cc"
-        , onlickmantissa model 3 "#ff66cc"
-        , onlickmantissa model 4 "#ff66cc"
-        , onlickmantissa model 5 "#ff66cc"
-        , onlickmantissa model 6 "#ff66cc"
-        ]
+-- This is checking whether the entered bits are either nan, positive infinity, negative checkifnegativeinfinity
+-- When those special values do occur their corresponding views will appear in the view
+-- Otherwise the explanation on how to carry out the conversions will appear in view
+explanationoffloatingpoint model = div [] [if checkifnan model then (nanview)
+                                           else if checkifpositiveinfinity model then (positiveinfinity)
+                                           else if checkifnegativeinfinity model then (negativeinfinity)
+                                           else if checkdenormalised model then (denormlised)
+                                           else if checkifzeronegative model then (zeropositive)
+                                           else if checkifzeropositive model then (zeronegative)
+                                           else explanationoffloatingpoint1 model ]
 
 
-viewhellomodel model = [viewSignIncrement model, viewExponentIncrement model, viewMantissaIncrement model]
+
+flipbitsexplanation model = div [style "position" "relative", style "top" "60px", style "right" "-560px", style "font-size" "15px"] [ div [style "font-weight" "bold"] [text "Hint :"]
+                             , div [style "display" "inline-block"] [text "Clicking the buttons will change the bits and provide an explanation for the conversion"]]
+
+
+--This is holding the calculator lists - Since this always needs to be displayed this is placed in a seperate model
+finalcalculatormodel model = div [style "position" "relative", style "margin-left" "-160px", style "margin-top" "120px"][image, abuttonexplanation, flipbitsexplanation model, explanationoffloatingpoint model, signexponentmantissaview model, viewSignIncrement model, viewExponentIncrement model, viewMantissaIncrement model]
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Quiz Page
+specialvalmsg = div (textstyle1 "205px" "730px" ) [text "The bits entered eqaute to a special value"]
+pinkbackground = div [style "background-color" "pink" , style "height" "100%", style "width" "100%", style "position" "fixed" , style "left" "640px"] [text ""]
+
+
+clueexplanation model = div [] [if checkifnan model
+                                   || checkifpositiveinfinity model
+                                   || checkifnegativeinfinity model
+                                   || checkdenormalised model
+                                   || checkifzeronegative model
+                                   || checkifzeropositive model then specialvalmsg
+                               else clueexplanation1 model ]
+
+--This is for the Help Calculator on the Quiz Page --This provides a partial explanation of how to convert IEEE Floating points to a number - This is for the quizview
+clueexplanation1 model =
+    div (textstyle1 "205px" "730px" ) [
+    fl [text "1. Floating point bits : "], floatingpointstring model, sp, sp
+    ,div [] [text ("2. The sign ' " ++ String.fromInt(model.sign) ++ " ' determines whether the number is going to be positive / negative")]
+    ,sp
+    ,div [] [text ("3. Convert the exponent into a number")]
+    ,sp
+    ,li [style "left" "15px", style "position" "relative"] [text ("The eB is ' " ++ (String.fromInt(sumexponent model)) ++ " '")], sp
+    ,li [style "left" "15px", style "position" "relative"] [text " What is the eB and how do you work out the exponent from it?" ]
+    ,sp
+    ,div [] [text ("4. Continue the same method with the mantissa (obviously there is no eB for this")]
+    ,sp
+    ,div [] [text ("5. The formular to get the IEEE Floating point representation to its decimal equivalent is as follows: " )] ,
+    sp, li [style "left" "15px", style "position" "relative"] [text "(-1 ^ s) * (1 + m) * (2^e) = "]]
+
+
+--= if checkifnan model == True then fixposition5 else fixposition5
+--fixposition5 model = [style "position" "absolute",style "z-index" "-900", style "width" "99%", style "height" "1400px", style "overflow-x" "hidden", style "overflow-y" "hidden"]

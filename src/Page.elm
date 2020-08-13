@@ -16,38 +16,67 @@ type Page
 
 view : Page -> { title : String, content : Html msg } -> Document msg
 view page { title, content } =
-    { title = title ++ " - Elm SPA"
+    { title = title
     , body =
         [ viewHeader page
         , content
         ]
     }
 
+
 viewHeader : Page -> Html msgz
 viewHeader page =
     nav navbarstyle
-        [ div [ class "container" ] [
-             p (navbarposition "0px") [a [if (isIntroPage page) == True then style "color" "white" else style "color" "black", Route.href Route.Introduction]
-                [ text "  Introduction" ]]
-             ,p (navbarposition "20px") [a [if (isCalculatePage page) == True then style "color" "white" else style "color" "black" , Route.href Route.Calculating]
-               [ text "Calculator" ]]
-            ,p (navbarposition "40px") [a [if (isQuizPage page) == True then style "color" "white" else style "color" "black", class "nav navbar-nav pull-xs-right" , Route.href Route.Quiz]
-                 [ text " Quiz" ]]
-          , home
-          , calculator
-          , quiz
+        [ div []
+            [ p (navbarposition "35px")
+                [ a
+                    [ if page == Introduction then
+                        style "color" "white"
+
+                      else
+                        style "color" "black"
+                    , Route.href Route.Introduction
+                    ]
+                    [ text "  Introduction" ]
+                ]
+            , p (navbarposition "100px")
+                [ a
+                    [ if page == Calculating then
+                        style "color" "white"
+
+                      else
+                        style "color" "black"
+                    , Route.href Route.Calculating
+                    ]
+                    [ text "Calculator" ]
+                ]
+            , p (navbarposition "160px")
+                [ a
+                    [ if page == Quiz then
+                        style "color" "white"
+
+                      else
+                        style "color" "black"
+                    , class "nav navbar-nav pull-xs-right"
+                    , Route.href Route.Quiz
+                    ]
+                    [ text " Quiz" ]
+                ]
+            , home
+            , calculator
+            , quiz
+            , astonuniversitylogo
+            ]
         ]
-        ]
 
-home = div [] [imageStyle "home.png" "10px" "grey" "60px" "30px" "30px"]
-calculator = div [] [imageStyle "calculator.png" "10px" "grey" "170px" "30px" "30px"]
-quiz = div [] [imageStyle "quiz.png" "10px" "grey" "280px" "30px" "30px"]
 
-iconsview = div [] [home, calculator, quiz]
+home = div [] [imageStyle "home.png" "0px" "#80bfff" "60px" "30px" "30px"]
+calculator = div [] [imageStyle "calculator.png" "0px" "#80bfff" "170px" "30px" "30px"]
+quiz = div [] [imageStyle "quiz.png" "0px" "#80bfff" "280px" "30px" "30px"]
 
-isIntroPage page = if page == Introduction then True else False
-isQuizPage page = if page == Quiz then True else False
-isCalculatePage page = if page == Calculating then True else False
+astonuniversitylogo = div [] [imageStyle "astonuniversitylogo.jpg" "3px" "white" "3px" "80px" "25px" ]
+
+
 
 
 isActive : Page -> Route -> Bool

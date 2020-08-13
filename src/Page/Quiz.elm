@@ -13,7 +13,7 @@ import Page.Quiz.Quizupdate as Quizupdate exposing (update)
 import Page.Quiz.Quizview as Quizview exposing (..)
 import Page.Quiz.Quizmessage as Quizmessage exposing (..)
 import Styles.Styles exposing (..)
-import Page.Calculator.Calculatorview exposing(..)
+import Page.Calculator.Calculatorview as Calculator exposing(..)
 
 --View of questions
 quiz model = Html.map QuizMsg (Quizview.viewquestionandvalidation model.quiz)
@@ -27,14 +27,16 @@ type Msg = QuizMsg Quizmessage.Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = case msg of QuizMsg quizmsg -> ({ model | quiz = first (Quizupdate.update quizmsg model.quiz)}, Cmd.none)
 
+
+
 -- This shows the of the quiz and the calculator which is a helper
 view : Model -> { title : String, content : Html Msg }
 view model =
-    { title = pageTitle
+    { title = Quizmodel.quizTitle
     , content =
-        div [style "width" "100%"]
-            [ h2 pagestyle [ text pageTitle ]
-            , div [] [text pageBody], quiz model, calculator model]
+        div fixposition3
+            [
+            div [] [text pageBody], quiz model, calculator model]
     }
 
 --This holds the attributes from the quizmodel
